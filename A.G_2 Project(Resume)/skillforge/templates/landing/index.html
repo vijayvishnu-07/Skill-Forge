@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Skill Forge — Master Skills. Share Knowledge. Build Your Future.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-inner animate-fade-in-up">
+    <p style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 1rem; letter-spacing: 0.05em; text-transform: uppercase;">⚡ The Modern Learning Platform</p>
+    <h1>Master Skills. Share Knowledge.<br>Build Your Future.</h1>
+    <p>Learn from creators or become one. Upload professional courses and help thousands learn. Join a community of passionate learners and expert instructors.</p>
+    <div class="hero-actions">
+      <a href="{% url 'browse_courses' %}" class="btn btn-primary btn-lg">Start Learning</a>
+      <a href="{% url 'register' %}?role=instructor" class="btn btn-accent btn-lg">Become Instructor</a>
+      <a href="{% url 'browse_courses' %}" class="btn btn-outline btn-lg">Browse Courses</a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="animate-fade-in delay-100">
+      <span class="stat-number" data-count="{{ stats.courses|default:'150' }}">0</span>
+      <span class="stat-label">Courses</span>
+    </div>
+    <div class="animate-fade-in delay-200">
+      <span class="stat-number" data-count="{{ stats.students|default:'2500' }}">0</span>
+      <span class="stat-label">Students</span>
+    </div>
+    <div class="animate-fade-in delay-300">
+      <span class="stat-number" data-count="{{ stats.creators|default:'85' }}">0</span>
+      <span class="stat-label">Creators</span>
+    </div>
+    <div class="animate-fade-in delay-400">
+      <span class="stat-number" data-count="{{ stats.hours|default:'5000' }}">0</span>
+      <span class="stat-label">Learning Hours</span>
+    </div>
+  </div>
+</section>
+
+<!-- Popular Categories -->
+<section class="section">
+  <div class="section-header animate-fade-in-up">
+    <h2>Explore Popular Categories</h2>
+    <p>Find courses in the subjects that matter most to your career and personal growth.</p>
+  </div>
+  <div class="category-grid">
+    {% if categories %}
+      {% for cat in categories %}
+      <a href="{% url 'browse_courses' %}?category={{ cat.slug }}" class="category-card animate-fade-in-up delay-{{ forloop.counter }}00">
+        <span class="category-icon">{{ cat.icon }}</span>
+        <span class="category-name">{{ cat.name }}</span>
+      </a>
+      {% endfor %}
+    {% else %}
+      <a href="{% url 'browse_courses' %}?category=programming" class="category-card animate-fade-in-up delay-100">
+        <span class="category-icon">💻</span><span class="category-name">Programming</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=design" class="category-card animate-fade-in-up delay-200">
+        <span class="category-icon">🎨</span><span class="category-name">Design</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=data-science" class="category-card animate-fade-in-up delay-300">
+        <span class="category-icon">📊</span><span class="category-name">Data Science</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=business" class="category-card animate-fade-in-up delay-400">
+        <span class="category-icon">💼</span><span class="category-name">Business</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=marketing" class="category-card animate-fade-in-up delay-500">
+        <span class="category-icon">📢</span><span class="category-name">Marketing</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=photography" class="category-card animate-fade-in-up delay-100">
+        <span class="category-icon">📷</span><span class="category-name">Photography</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=music" class="category-card animate-fade-in-up delay-200">
+        <span class="category-icon">🎵</span><span class="category-name">Music</span>
+      </a>
+      <a href="{% url 'browse_courses' %}?category=ai" class="category-card animate-fade-in-up delay-300">
+        <span class="category-icon">🤖</span><span class="category-name">AI & ML</span>
+      </a>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Featured Courses -->
+<section class="section" style="background: var(--surface); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); max-width: 100%; padding-left: 0; padding-right: 0;">
+  <div style="max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;">
+    <div class="section-header animate-fade-in-up">
+      <h2>Featured Courses</h2>
+      <p>Handpicked courses trending on Skill Forge right now.</p>
+    </div>
+    <div class="course-grid">
+      {% for course in featured_courses %}
+      <a href="{% url 'course_detail' slug=course.slug %}" class="card course-card animate-fade-in-up" style="text-decoration: none; color: inherit;">
+        <div class="card-thumb">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+          {% else %}
+            <div style="width:100%;height:100%;background:linear-gradient(135deg,#DBEAFE,#C7D2FE);display:flex;align-items:center;justify-content:center;font-size:2rem;">📚</div>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <h4>{{ course.title }}</h4>
+          <div class="card-instructor">{{ course.instructor.get_full_name }}</div>
+          <div class="card-rating">
+            <span class="stars">{% for i in "12345" %}{% if forloop.counter <= course.average_rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+            <span>{{ course.average_rating }}</span>
+            <span style="color: var(--text-muted);">({{ course.rating_count }})</span>
+          </div>
+          <div class="card-bottom">
+            <span>{{ course.duration_display }}</span>
+            <span class="level-badge level-{{ course.skill_level }}">{{ course.get_skill_level_display }}</span>
+          </div>
+        </div>
+      </a>
+      {% empty %}
+      <!-- Demo course cards when no courses exist -->
+      {% for i in "123456" %}
+      <div class="card course-card animate-fade-in-up delay-{{ forloop.counter }}00">
+        <div class="card-thumb">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg, {% cycle '#DBEAFE' '#C7D2FE' '#FEF3C7' '#D1FAE5' '#FEE2E2' '#E0E7FF' %}, {% cycle '#93C5FD' '#818CF8' '#FCD34D' '#6EE7B7' '#FCA5A5' '#A5B4FC' %});display:flex;align-items:center;justify-content:center;font-size:2rem;">{% cycle '🖥️' '🎨' '📊' '🤖' '📱' '🔧' %}</div>
+        </div>
+        <div class="card-body">
+          <h4>{% cycle 'Complete Web Development Bootcamp' 'UI/UX Design Masterclass 2025' 'Data Science with Python' 'Machine Learning A-Z' 'React Native for Beginners' 'DevOps Engineering Pro' %}</h4>
+          <div class="card-instructor">{% cycle 'Sarah Johnson' 'Mike Chen' 'Dr. Emily Brown' 'Alex Rivera' 'James Wilson' 'Lisa Park' %}</div>
+          <div class="card-rating">
+            <span class="stars">★★★★{% cycle '★' '☆' '★' '★' '☆' '★' %}</span>
+            <span>{% cycle '4.8' '4.6' '4.9' '4.7' '4.5' '4.8' %}</span>
+            <span style="color: var(--text-muted);">({% cycle '1,234' '856' '2,100' '945' '620' '1,580' %})</span>
+          </div>
+          <div class="card-bottom">
+            <span>{% cycle '42h 30m' '28h 15m' '36h 45m' '52h 10m' '18h 20m' '45h 50m' %}</span>
+            <span class="level-badge {% cycle 'level-all_levels' 'level-intermediate' 'level-beginner' 'level-advanced' 'level-beginner' 'level-intermediate' %}">{% cycle 'All Levels' 'Intermediate' 'Beginner' 'Advanced' 'Beginner' 'Intermediate' %}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{% url 'browse_courses' %}" class="btn btn-outline btn-lg">View All Courses →</a>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section">
+  <div class="section-header animate-fade-in-up">
+    <h2>What Our Learners Say</h2>
+    <p>Hear from students and instructors who've transformed their careers with Skill Forge.</p>
+  </div>
+  <div class="testimonial-grid">
+    <div class="testimonial-card animate-fade-in-up delay-100">
+      <div class="testimonial-text">"Skill Forge completely changed how I learn. The course quality is exceptional, and the learning experience feels like having a personal tutor. I landed my dream job after completing just three courses."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AK</div>
+        <div>
+          <div class="testimonial-name">Ananya Krishnan</div>
+          <div class="testimonial-role">Software Engineer at Google</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card animate-fade-in-up delay-200">
+      <div class="testimonial-text">"As an instructor, Skill Forge gives me the tools to create professional courses effortlessly. The AI features save hours of work, and the analytics help me understand what my students need."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">MR</div>
+        <div>
+          <div class="testimonial-name">Marcus Rodriguez</div>
+          <div class="testimonial-role">Course Creator, 15K+ Students</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card animate-fade-in-up delay-300">
+      <div class="testimonial-text">"The video player and quiz system are incredibly well-designed. I can track my progress, take notes, and the certificate I earned helped me negotiate a 30% salary increase."</div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">SP</div>
+        <div>
+          <div class="testimonial-name">Sophie Park</div>
+          <div class="testimonial-role">Data Analyst, promoted via upskilling</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding: 5rem 1.5rem; text-align: center; background: linear-gradient(135deg, var(--secondary) 0%, #1E3A5F 100%); color: white;">
+  <div style="max-width: 600px; margin: 0 auto;" class="animate-fade-in-up">
+    <h2 style="color: white; margin-bottom: 1rem;">Ready to Start Learning?</h2>
+    <p style="color: #94A3B8; margin-bottom: 2rem; font-size: 1.1rem;">Join thousands of learners and creators building the future of education together.</p>
+    <div class="hero-actions">
+      <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started Free</a>
+      <a href="{% url 'register' %}?role=instructor" class="btn btn-accent btn-lg">Teach on Skill Forge</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Animated stat counters
+  function animateCounters() {
+    document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+      const target = parseInt(el.dataset.count);
+      const duration = 2000;
+      const start = Date.now();
+      function update() {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target).toLocaleString() + (target >= 1000 ? '+' : '');
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      // Start when visible
+      const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { update(); observer.disconnect(); }
+      });
+      observer.observe(el);
+    });
+  }
+  animateCounters();
+</script>
+{% endblock %}

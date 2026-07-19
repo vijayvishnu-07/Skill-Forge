@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <!-- Icon: Combined Book + Play + Graduation Cap + Spark -->
+  <g transform="translate(4, 4)">
+    <!-- Book shape -->
+    <path d="M4 8C4 5.79 5.79 4 8 4H18V36H8C5.79 36 4 34.21 4 32V8Z" fill="#2563EB" opacity="0.9"/>
+    <path d="M18 4H28C30.21 4 32 5.79 32 8V32C32 34.21 30.21 36 28 36H18V4Z" fill="#1D4ED8"/>
+    <!-- Graduation cap -->
+    <polygon points="18,2 6,10 18,18 30,10" fill="#14B8A6"/>
+    <line x1="26" y1="10" x2="26" y2="22" stroke="#14B8A6" stroke-width="1.5"/>
+    <circle cx="26" cy="23" r="1.5" fill="#14B8A6"/>
+    <!-- Play button -->
+    <polygon points="15,14 15,26 24,20" fill="white" opacity="0.95"/>
+    <!-- AI Spark -->
+    <path d="M33 6L35 10L39 8L37 12L41 14L37 16L39 20L35 18L33 22L31 18L27 20L29 16L25 14L29 12L27 8L31 10Z" fill="#F59E0B" opacity="0.85"/>
+  </g>
+  <!-- Text -->
+  <text x="52" y="22" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="700" font-size="20" fill="#0F172A">Skill</text>
+  <text x="52" y="22" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="700" font-size="20" fill="#0F172A" dx="42">Forge</text>
+  <text x="94" y="22" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="700" font-size="20" fill="#2563EB">Forge</text>
+  <!-- Tagline -->
+  <text x="52" y="38" font-family="Inter, system-ui, sans-serif" font-weight="400" font-size="9" fill="#64748B" letter-spacing="0.5">LEARN · CREATE · GROW</text>
+</svg>

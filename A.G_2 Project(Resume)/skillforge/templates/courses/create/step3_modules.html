@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Course — Content — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="creator-layout animate-fade-in">
+  <div class="step-indicator">
+    <div class="step completed"><div class="step-number">✓</div><span class="step-label">Thumbnail</span></div>
+    <div class="step-line completed"></div>
+    <div class="step completed"><div class="step-number">✓</div><span class="step-label">Information</span></div>
+    <div class="step-line completed"></div>
+    <div class="step active"><div class="step-number">3</div><span class="step-label">Content</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-number">4</div><span class="step-label">Review</span></div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <h2 style="margin-bottom: 0.25rem;">Course Content</h2>
+      <p class="text-muted">Add modules, upload videos, and create quizzes. Max 8 modules per course.</p>
+    </div>
+    <button class="btn btn-primary" onclick="addModule()" id="addModuleBtn">+ Add Module</button>
+  </div>
+
+  <div id="modulesContainer">
+    {% for module in modules %}
+    <div class="module-card-creator" data-module-id="{{ module.id }}">
+      <div class="module-card-header">
+        <div>
+          <span style="font-weight: 700; color: var(--primary);">Module {{ forloop.counter }}</span>
+          <span style="margin-left: 0.5rem; font-weight: 600;">{{ module.title }}</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-ghost btn-sm" onclick="addVideoLesson('{{ module.id }}')">🎬 Add Video</button>
+          <button class="btn btn-ghost btn-sm" onclick="addQuizLesson('{{ module.id }}')">📝 Add Quiz</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteModule('{{ module.id }}')" style="color: var(--error);">🗑️</button>
+        </div>
+      </div>
+      <div class="module-card-content" id="lessons-{{ module.id }}">
+        {% for lesson in module.lessons.all %}
+        <div class="lesson-item" style="border-left: none; padding-left: 1rem;">
+          <span>{% if lesson.lesson_type == 'video' %}🎬{% else %}📝{% endif %}</span>
+          <span style="flex: 1;">{{ lesson.title }}</span>
+          {% if lesson.video %}<span class="text-muted" style="font-size: 0.8rem;">{{ lesson.video.duration_display }}</span>{% endif %}
+          <button class="btn btn-ghost btn-sm" onclick="deleteLesson('{{ lesson.id }}')" style="color: var(--error); padding: 0.25rem;">×</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" id="emptyModules">
+      <div class="icon">📦</div>
+      <h3>No modules yet</h3>
+      <p>Click "Add Module" to start building your course content.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+    <a href="{% url 'course_create_step2' %}" class="btn btn-ghost">← Back</a>
+    <a href="{% url 'course_review' %}" class="btn btn-primary">Review & Publish →</a>
+  </div>
+</div>
+
+<!-- Add Video Modal -->
+<div id="videoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:none; align-items:center; justify-content:center;">
+  <div class="card" style="width: 500px; max-width: 90vw; animation: scaleIn 0.3s ease-out;">
+    <div class="card-body" style="padding: 2rem;">
+      <h3 style="margin-bottom: 1rem;">Add Video Lesson</h3>
+      <form id="videoForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" id="videoModuleId" name="module_id">
+        <input type="hidden" name="lesson_type" value="video">
+        <div class="form-group">
+          <label class="form-label">Lesson Title</label>
+          <input type="text" class="form-input" name="title" placeholder="e.g. Introduction to Variables" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Video File (MP4)</label>
+          <input type="file" class="form-input" name="video_file" accept="video/*" required onchange="getVideoDuration(this)">
+          <input type="hidden" name="duration" id="videoDuration">
+        </div>
+        <div id="videoPreviewContainer" style="display:none; margin-top: 0.5rem;">
+          <video id="videoPreview" style="width: 100%; border-radius: var(--radius-sm);" controls></video>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('videoModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Video</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Quiz Modal -->
+<div id="quizModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div class="card" style="width: 600px; max-width: 90vw; max-height: 80vh; overflow-y: auto; animation: scaleIn 0.3s ease-out;">
+    <div class="card-body" style="padding: 2rem;">
+      <h3 style="margin-bottom: 1rem;">Add Quiz Lesson</h3>
+      <form id="quizForm">
+        {% csrf_token %}
+        <input type="hidden" id="quizModuleId" name="module_id">
+        <input type="hidden" name="lesson_type" value="quiz">
+        <div class="form-group">
+          <label class="form-label">Quiz Title</label>
+          <input type="text" class="form-input" name="title" placeholder="e.g. Module 1 Assessment" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pass Percentage</label>
+          <input type="number" class="form-input" name="pass_percentage" value="70" min="1" max="100">
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem;">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('quizModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Quiz</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/course_create.js' %}"></script>
+<script>
+  const courseId = '{{ course.id }}';
+</script>
+{% endblock %}

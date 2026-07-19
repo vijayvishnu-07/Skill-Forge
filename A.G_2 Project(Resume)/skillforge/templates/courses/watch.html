@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ course.title }} — Watch — Skill Forge{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="player-layout">
+  <!-- Main Player Area -->
+  <div class="player-main">
+    {% if current_lesson and current_lesson.lesson_type == 'video' and current_lesson.video %}
+    <!-- Video Player -->
+    <div class="video-container" id="videoContainer">
+      <video id="videoPlayer" preload="metadata">
+        <source src="{{ current_lesson.video.file.url }}" type="video/mp4">
+        Your browser does not support the video element.
+      </video>
+      <div class="video-controls" id="videoControls">
+        <button id="playPauseBtn" title="Play/Pause (Space)">▶️</button>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+        <select class="speed-selector" id="speedSelector" title="Playback Speed">
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+        <button id="pipBtn" title="Picture-in-Picture">🖼️</button>
+        <button id="fullscreenBtn" title="Fullscreen (F)">⛶</button>
+      </div>
+    </div>
+    {% elif current_lesson and current_lesson.lesson_type == 'quiz' %}
+    <!-- Quiz Section -->
+    <div style="background: var(--surface); min-height: 60vh; padding: 2rem;">
+      <div class="quiz-container" id="quizContainer">
+        <div class="quiz-header">
+          <h2>📝 {{ current_lesson.title }}</h2>
+          <p class="text-muted">Answer all questions to continue. Pass mark: {{ current_lesson.quiz.pass_percentage }}%</p>
+        </div>
+        <div id="quizContent">
+          <div class="flex-center" style="padding: 3rem;"><button class="btn btn-primary btn-lg" onclick="loadQuiz('{{ current_lesson.quiz.id }}')">Start Quiz</button></div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="background: var(--surface); min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+      <div class="empty-state">
+        <div class="icon">🎬</div>
+        <h3>Select a lesson</h3>
+        <p>Choose a lesson from the sidebar to start learning</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Below Video: Info -->
+    <div style="background: var(--surface); padding: 2rem;">
+      {% if current_lesson %}
+      <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem;">{{ current_lesson.title }}</h2>
+          <p class="text-muted" style="font-size: 0.85rem;">{{ course.title }} · {{ current_lesson.module.title }}</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-ghost btn-sm" onclick="toggleBookmark('{{ current_lesson.id }}')" id="bookmarkBtn">
+            {% if current_lesson.id|slugify in bookmarks %}🔖 Bookmarked{% else %}🔖 Bookmark{% endif %}
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="markComplete('{{ current_lesson.id }}')" id="completeBtn">
+            ✅ Mark Complete
+          </button>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card-flat" style="margin-top: 1rem;">
+        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem;">📝 My Notes</h4>
+        <textarea class="form-input" id="lessonNotes" rows="3" placeholder="Take notes for this lesson..." style="font-size: 0.85rem;"></textarea>
+      </div>
+
+      <!-- Feedback (show if course is completed) -->
+      {% if enrollment.completed %}
+      <div class="card-flat" style="margin-top: 1rem;">
+        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem;">⭐ Rate this course</h4>
+        <div style="display: flex; gap: 0.25rem; margin-bottom: 0.75rem;" id="ratingStars">
+          {% for i in "12345" %}
+          <button style="font-size: 1.5rem; background: none; border: none; cursor: pointer; transition: transform 0.15s;" onclick="setRating({{ forloop.counter }})" data-star="{{ forloop.counter }}">☆</button>
+          {% endfor %}
+        </div>
+        <textarea class="form-input" id="feedbackText" rows="2" placeholder="Share your experience..." style="font-size: 0.85rem;"></textarea>
+        <button class="btn btn-primary btn-sm mt-1" onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sidebar: Course Content -->
+  <div class="player-sidebar">
+    <div class="sidebar-header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1rem;">Course Content</h3>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">{{ progress_percentage }}% complete</span>
+      </div>
+      <div class="progress-bar-container" style="margin-top: 0.75rem;">
+        <div class="progress-bar-fill-course" style="width: {{ progress_percentage }}%" id="courseProgress"></div>
+      </div>
+    </div>
+
+    {% for module in modules %}
+    <div class="module-group">
+      <div class="module-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.125rem;">Module {{ forloop.counter }}</div>
+          {{ module.title }}
+        </div>
+        <span style="font-size: 0.7rem; color: var(--text-muted);">{{ module.lessons.count }} lessons</span>
+      </div>
+      <div {% if current_lesson and current_lesson.module.id != module.id %}class="hidden"{% endif %}>
+        {% for lesson in module.lessons.all %}
+        {% with lesson_id=lesson.id|slugify %}
+        <a href="{% url 'course_watch' slug=course.slug %}?lesson={{ lesson.id }}"
+           class="lesson-item {% if current_lesson and current_lesson.id == lesson.id %}active{% endif %} {% if lesson_id in all_progress and all_progress|dictsort:'lesson_id' %}{% for k,v in all_progress.items %}{% if k == lesson_id and v.completed %}completed{% endif %}{% endfor %}{% endif %}"
+           style="text-decoration: none;">
+          <div class="lesson-check">
+            {% if lesson_id in all_progress %}✓{% endif %}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 0.375rem;">
+              {% if lesson.lesson_type == 'video' %}🎬{% else %}📝{% endif %}
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ lesson.title }}</span>
+            </div>
+            {% if lesson.lesson_type == 'video' and lesson.video %}
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.125rem;">{{ lesson.video.duration_display }}</div>
+            {% endif %}
+          </div>
+        </a>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/course_player.js' %}"></script>
+<script src="{% static 'js/quiz.js' %}"></script>
+<script>
+  {% if current_lesson and current_lesson.lesson_type == 'video' %}
+  // Initialize player with saved position
+  const savedPosition = {{ progress.last_position|default:0 }};
+  initPlayer(savedPosition, '{{ current_lesson.id }}', '{{ course.slug }}');
+  {% endif %}
+
+  // Feedback
+  let currentRating = 0;
+  function setRating(n) {
+    currentRating = n;
+    document.querySelectorAll('#ratingStars button').forEach((btn, i) => {
+      btn.textContent = i < n ? '★' : '☆';
+      btn.style.color = i < n ? 'var(--warning)' : 'var(--text-muted)';
+    });
+  }
+  function submitFeedback() {
+    if (!currentRating) { showToast('Please select a rating', 'warning'); return; }
+    fetch('/feedback/{{ course.id }}/submit/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ rating: currentRating, text: document.getElementById('feedbackText').value })
+    }).then(r => r.json()).then(d => {
+      if (d.status === 'ok') showToast('Thank you for your feedback! ⭐', 'success');
+      else showToast(d.message || 'Error submitting feedback', 'error');
+    });
+  }
+</script>
+{% endblock %}

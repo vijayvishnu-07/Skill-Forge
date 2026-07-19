@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Verify Email — Skill Forge{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card" style="text-align: center;">
+    <div class="logo">
+      <a href="{% url 'landing' %}"><img src="{% static 'images/logo.svg' %}" alt="Skill Forge"></a>
+    </div>
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📧</div>
+    <h2>Verify your email</h2>
+    <p class="subtitle">We sent a 6-digit code to <strong>{{ email }}</strong></p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group" style="margin-top: 1.5rem;">
+        <input type="text" class="form-input" name="otp" placeholder="Enter 6-digit code" maxlength="6" minlength="6" required
+               style="text-align: center; font-size: 1.5rem; letter-spacing: 0.5em; font-weight: 700;" autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Verify Email</button>
+    </form>
+
+    <p style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+      Didn't receive the code?
+      <a href="{% url 'resend_otp' %}" style="font-weight: 600;">Resend</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

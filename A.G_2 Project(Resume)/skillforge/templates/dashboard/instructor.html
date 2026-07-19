@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Instructor Dashboard — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <div class="dashboard-header animate-fade-in">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1>Instructor Dashboard</h1>
+        <p class="text-muted">Manage your courses and track performance</p>
+      </div>
+      <a href="{% url 'course_create_step1' %}" class="btn btn-primary">+ Create New Course</a>
+    </div>
+  </div>
+
+  <!-- Analytics Cards -->
+  <div class="dashboard-stats animate-fade-in-up delay-100">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--primary-light);">📚</div>
+      <h3>{{ stats.total_courses }}</h3>
+      <p>Total Courses</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #D1FAE5;">👥</div>
+      <h3>{{ stats.total_students }}</h3>
+      <p>Students Enrolled</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #FEF3C7;">⭐</div>
+      <h3>{{ stats.avg_rating }}</h3>
+      <p>Average Rating</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #EDE9FE;">👁️</div>
+      <h3>{{ stats.total_views }}</h3>
+      <p>Course Views</p>
+    </div>
+  </div>
+
+  <!-- Enrollment Chart -->
+  <div class="card-flat mb-3 animate-fade-in-up delay-200">
+    <h3 style="margin-bottom: 1rem;">Recent Enrollments</h3>
+    <canvas id="enrollmentChart" height="100"></canvas>
+  </div>
+
+  <!-- My Courses -->
+  <div class="mb-3 animate-fade-in-up delay-300">
+    <h3 style="margin-bottom: 1rem;">My Courses</h3>
+    {% if courses %}
+    <div style="overflow-x: auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Status</th>
+            <th>Students</th>
+            <th>Rating</th>
+            <th>Views</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for course in courses %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 60px; height: 34px; border-radius: var(--radius-xs); overflow: hidden; background: var(--border-light); flex-shrink: 0;">
+                  {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;">{% endif %}
+                </div>
+                <strong>{{ course.title }}</strong>
+              </div>
+            </td>
+            <td><span class="level-badge level-{{ course.status }}" style="{% if course.status == 'published' %}background:#D1FAE5;color:#166534;{% elif course.status == 'draft' %}background:#FEF3C7;color:#92400E;{% else %}background:#E2E8F0;color:#475569;{% endif %}">{{ course.get_status_display }}</span></td>
+            <td>{{ course.student_count }}</td>
+            <td>⭐ {{ course.average_rating }}</td>
+            <td>{{ course.view_count }}</td>
+            <td>
+              <div style="display: flex; gap: 0.375rem;">
+                <a href="{% url 'course_edit' slug=course.slug %}" class="btn btn-ghost btn-sm">Edit</a>
+                <a href="{% url 'course_detail' slug=course.slug %}" class="btn btn-ghost btn-sm">View</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">🎓</div>
+      <h3>No courses yet</h3>
+      <p>Create your first course and start teaching!</p>
+      <a href="{% url 'course_create_step1' %}" class="btn btn-primary mt-2">Create Course</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent Feedback -->
+  {% if recent_feedback %}
+  <div class="animate-fade-in-up delay-400">
+    <h3 style="margin-bottom: 1rem;">Recent Feedback</h3>
+    {% for fb in recent_feedback %}
+    <div class="card-flat" style="margin-bottom: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div>
+          <strong style="font-size: 0.9rem;">{{ fb.student.get_full_name }}</strong>
+          <span class="text-muted" style="font-size: 0.8rem;"> on {{ fb.course.title }}</span>
+        </div>
+        <div>
+          <span class="stars">{% for i in "12345" %}{% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+          <span class="text-muted" style="font-size: 0.8rem;">{{ fb.created_at|timesince }} ago</span>
+        </div>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">{{ fb.text|default:"No comment" }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+  const chartData = {{ chart_data|safe }};
+  const ctx = document.getElementById('enrollmentChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartData.map(d => d.date),
+        datasets: [{
+          label: 'New Enrollments',
+          data: chartData.map(d => d.count),
+          backgroundColor: 'rgba(37, 99, 235, 0.2)',
+          borderColor: '#2563EB',
+          borderWidth: 2,
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#F1F5F9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

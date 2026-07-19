@@ -1,0 +1,31 @@
+{% extends 'admin_panel/dashboard.html' %}
+{% block title %}Feedback — Admin — Skill Forge{% endblock %}
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="margin-bottom: 2rem;"><img src="{% static 'images/logo-dark.svg' %}" height="28" alt="Skill Forge"></div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a><a href="{% url 'admin_users' %}">👥 Users</a><a href="{% url 'admin_courses' %}">📚 Courses</a><a href="{% url 'admin_categories' %}">📁 Categories</a><a href="{% url 'admin_feedback' %}" class="active">⭐ Feedback</a><a href="{% url 'admin_settings' %}">⚙️ Settings</a>
+      <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"><a href="{% url 'dashboard' %}">← Back to App</a></div>
+    </nav>
+  </aside>
+  <main class="admin-content">
+    <h1 style="font-size: 1.5rem; margin-bottom: 2rem;">Course Feedback</h1>
+    <table class="admin-table">
+      <thead><tr><th>Student</th><th>Course</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for fb in feedbacks %}
+        <tr>
+          <td>{{ fb.student.get_full_name }}</td>
+          <td>{{ fb.course.title|truncatechars:30 }}</td>
+          <td><span class="stars">{% for i in "12345" %}{% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}{% endfor %}</span></td>
+          <td>{{ fb.text|truncatechars:80|default:"—" }}</td>
+          <td>{{ fb.created_at|date:"M d, Y" }}</td>
+          <td><form method="post" style="display:inline;">{% csrf_token %}<input type="hidden" name="feedback_id" value="{{ fb.id }}"><button type="submit" name="action" value="delete" class="btn btn-ghost btn-sm" style="color:var(--error);" onclick="return confirm('Delete?')">Delete</button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</div>
+{% endblock %}

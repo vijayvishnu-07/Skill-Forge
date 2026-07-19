@@ -1,0 +1,72 @@
+{% extends 'admin_panel/dashboard.html' %}
+{% block title %}Manage Users — Admin — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="margin-bottom: 2rem;"><img src="{% static 'images/logo-dark.svg' %}" height="28" alt="Skill Forge"></div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_users' %}" class="active">👥 Users</a>
+      <a href="{% url 'admin_courses' %}">📚 Courses</a>
+      <a href="{% url 'admin_categories' %}">📁 Categories</a>
+      <a href="{% url 'admin_feedback' %}">⭐ Feedback</a>
+      <a href="{% url 'admin_settings' %}">⚙️ Settings</a>
+      <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"><a href="{% url 'dashboard' %}">← Back to App</a></div>
+    </nav>
+  </aside>
+  <main class="admin-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h1 style="font-size: 1.5rem;">Manage Users</h1>
+      <form style="display: flex; gap: 0.5rem;">
+        <input type="text" class="form-input" name="q" placeholder="Search users..." value="{{ search }}" style="width: 250px; padding: 0.5rem 1rem; font-size: 0.85rem;">
+        <select class="form-input" name="role" style="width: auto; padding: 0.5rem; font-size: 0.85rem;" onchange="this.form.submit()">
+          <option value="">All Roles</option>
+          <option value="student" {% if current_role == 'student' %}selected{% endif %}>Students</option>
+          <option value="instructor" {% if current_role == 'instructor' %}selected{% endif %}>Instructors</option>
+          <option value="admin" {% if current_role == 'admin' %}selected{% endif %}>Admins</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Search</button>
+      </form>
+    </div>
+
+    <table class="admin-table">
+      <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Verified</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u.get_full_name|default:"—" }}</strong></td>
+          <td>{{ u.email }}</td>
+          <td><span class="level-badge level-all_levels">{{ u.get_role_display }}</span></td>
+          <td>{% if u.is_email_verified %}✅{% else %}❌{% endif %}</td>
+          <td>{{ u.date_joined|date:"M d, Y" }}</td>
+          <td>
+            <form method="post" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="user_id" value="{{ u.id }}">
+              <select name="new_role" style="padding: 0.25rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px;">
+                <option value="student" {% if u.role == 'student' %}selected{% endif %}>Student</option>
+                <option value="instructor" {% if u.role == 'instructor' %}selected{% endif %}>Instructor</option>
+                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+              </select>
+              <button type="submit" name="action" value="change_role" class="btn btn-ghost btn-sm">Save</button>
+              <button type="submit" name="action" value="toggle_active" class="btn btn-ghost btn-sm">{% if u.is_active %}Disable{% else %}Enable{% endif %}</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if users.has_other_pages %}
+    <div class="pagination">
+      {% if users.has_previous %}<a href="?page={{ users.previous_page_number }}&q={{ search }}&role={{ current_role }}">← Prev</a>{% endif %}
+      {% for num in users.paginator.page_range %}
+        {% if users.number == num %}<span class="current">{{ num }}</span>{% elif num > users.number|add:'-3' and num < users.number|add:'3' %}<a href="?page={{ num }}&q={{ search }}&role={{ current_role }}">{{ num }}</a>{% endif %}
+      {% endfor %}
+      {% if users.has_next %}<a href="?page={{ users.next_page_number }}&q={{ search }}&role={{ current_role }}">Next →</a>{% endif %}
+    </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

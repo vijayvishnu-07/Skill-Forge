@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Browse Courses — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="section" style="padding-top: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;" class="animate-fade-in">
+    <div>
+      <h1 style="font-size: 1.75rem;">Browse Courses</h1>
+      <p style="font-size: 0.9rem;">Discover your next skill from our curated collection</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center;">
+      <select class="form-input" style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem;" onchange="window.location.search='?sort='+this.value + '{% if current_category %}&category={{ current_category }}{% endif %}'">
+        <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+        <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+        <option value="students" {% if current_sort == 'students' %}selected{% endif %}>Most Students</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Category Filter -->
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;" class="animate-fade-in delay-100">
+    <a href="{% url 'browse_courses' %}?sort={{ current_sort }}" class="btn {% if not current_category %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">All</a>
+    {% for cat in categories %}
+      <a href="{% url 'browse_courses' %}?category={{ cat.slug }}&sort={{ current_sort }}" class="btn {% if current_category == cat.slug %}btn-primary{% else %}btn-ghost{% endif %} btn-sm">{{ cat.icon }} {{ cat.name }}</a>
+    {% endfor %}
+  </div>
+
+  <!-- Course Grid -->
+  <div class="course-grid animate-fade-in-up delay-200">
+    {% for course in courses %}
+    <a href="{% url 'course_detail' slug=course.slug %}" class="card course-card" style="text-decoration: none; color: inherit;">
+      <div class="card-thumb">
+        {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+        {% else %}
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#DBEAFE,#C7D2FE);display:flex;align-items:center;justify-content:center;font-size:2rem;">📚</div>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <h4>{{ course.title }}</h4>
+        <div class="card-instructor">{{ course.instructor.get_full_name }}</div>
+        <div class="card-rating">
+          <span class="stars">{% for i in "12345" %}{% if forloop.counter <= course.average_rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+          <span>{{ course.average_rating }}</span>
+          <span style="color: var(--text-muted);">({{ course.rating_count }})</span>
+        </div>
+        <div class="card-bottom">
+          <span>{{ course.duration_display }} · {{ course.total_lessons }} lessons</span>
+          <span class="level-badge level-{{ course.skill_level }}">{{ course.get_skill_level_display }}</span>
+        </div>
+      </div>
+    </a>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+      <div class="icon">📚</div>
+      <h3>No courses found</h3>
+      <p>Try changing your filters or check back later for new courses.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if courses.has_other_pages %}
+  <div class="pagination">
+    {% if courses.has_previous %}
+      <a href="?page={{ courses.previous_page_number }}&sort={{ current_sort }}{% if current_category %}&category={{ current_category }}{% endif %}">← Prev</a>
+    {% endif %}
+    {% for num in courses.paginator.page_range %}
+      {% if courses.number == num %}
+        <span class="current">{{ num }}</span>
+      {% elif num > courses.number|add:'-3' and num < courses.number|add:'3' %}
+        <a href="?page={{ num }}&sort={{ current_sort }}{% if current_category %}&category={{ current_category }}{% endif %}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if courses.has_next %}
+      <a href="?page={{ courses.next_page_number }}&sort={{ current_sort }}{% if current_category %}&category={{ current_category }}{% endif %}">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

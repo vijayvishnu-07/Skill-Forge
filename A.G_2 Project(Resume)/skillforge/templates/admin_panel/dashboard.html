@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard — Skill Forge{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="margin-bottom: 2rem;">
+      <img src="{% static 'images/logo-dark.svg' %}" height="28" alt="Skill Forge">
+    </div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}" class="active">📊 Dashboard</a>
+      <a href="{% url 'admin_users' %}">👥 Users</a>
+      <a href="{% url 'admin_courses' %}">📚 Courses</a>
+      <a href="{% url 'admin_categories' %}">📁 Categories</a>
+      <a href="{% url 'admin_feedback' %}">⭐ Feedback</a>
+      <a href="{% url 'admin_settings' %}">⚙️ Settings</a>
+      <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+        <a href="{% url 'dashboard' %}">← Back to App</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <h1 style="font-size: 1.5rem; margin-bottom: 2rem;">System Overview</h1>
+
+    <div class="dashboard-stats">
+      <div class="stat-card"><div class="stat-icon" style="background: var(--primary-light);">👥</div><h3>{{ stats.total_users }}</h3><p>Total Users</p></div>
+      <div class="stat-card"><div class="stat-icon" style="background: #D1FAE5;">🎓</div><h3>{{ stats.total_students }}</h3><p>Students</p></div>
+      <div class="stat-card"><div class="stat-icon" style="background: #FEF3C7;">👨‍🏫</div><h3>{{ stats.total_instructors }}</h3><p>Instructors</p></div>
+      <div class="stat-card"><div class="stat-icon" style="background: #EDE9FE;">📚</div><h3>{{ stats.total_courses }}</h3><p>Total Courses</p></div>
+      <div class="stat-card"><div class="stat-icon" style="background: #FEE2E2;">✅</div><h3>{{ stats.published_courses }}</h3><p>Published</p></div>
+      <div class="stat-card"><div class="stat-icon" style="background: #DBEAFE;">📝</div><h3>{{ stats.total_enrollments }}</h3><p>Enrollments</p></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+      <!-- Recent Users -->
+      <div class="card-flat">
+        <h3 style="margin-bottom: 1rem; font-size: 1rem;">Recent Users</h3>
+        {% for u in recent_users %}
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: var(--primary);">{{ u.first_name|make_list|first|default:"U" }}</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.85rem; font-weight: 600;">{{ u.get_full_name|default:u.email }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ u.get_role_display }} · {{ u.date_joined|timesince }} ago</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Recent Courses -->
+      <div class="card-flat">
+        <h3 style="margin-bottom: 1rem; font-size: 1rem;">Recent Courses</h3>
+        {% for c in recent_courses %}
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
+          <div style="font-size: 1.5rem;">📚</div>
+          <div style="flex: 1;">
+            <div style="font-size: 0.85rem; font-weight: 600;">{{ c.title }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">by {{ c.instructor.get_full_name }} · {{ c.get_status_display }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

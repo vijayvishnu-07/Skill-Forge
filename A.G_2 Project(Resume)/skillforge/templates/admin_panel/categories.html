@@ -1,0 +1,71 @@
+{% extends 'admin_panel/dashboard.html' %}
+{% block title %}Categories — Admin — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="margin-bottom: 2rem;"><img src="{% static 'images/logo-dark.svg' %}" height="28" alt="Skill Forge"></div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_users' %}">👥 Users</a>
+      <a href="{% url 'admin_courses' %}">📚 Courses</a>
+      <a href="{% url 'admin_categories' %}" class="active">📁 Categories</a>
+      <a href="{% url 'admin_feedback' %}">⭐ Feedback</a>
+      <a href="{% url 'admin_settings' %}">⚙️ Settings</a>
+      <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"><a href="{% url 'dashboard' %}">← Back to App</a></div>
+    </nav>
+  </aside>
+  <main class="admin-content">
+    <h1 style="font-size: 1.5rem; margin-bottom: 2rem;">Manage Categories</h1>
+
+    <!-- Add Category Form -->
+    <div class="card-flat mb-3">
+      <h3 style="font-size: 1rem; margin-bottom: 1rem;">Add New Category</h3>
+      <form method="post" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" name="name" required placeholder="Category name" style="width: 200px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Icon (emoji)</label>
+          <input type="text" class="form-input" name="icon" value="📚" style="width: 80px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-input" name="description" placeholder="Brief description" style="width: 250px;">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" name="is_featured"> Featured
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Category</button>
+      </form>
+    </div>
+
+    <!-- Categories Table -->
+    <table class="admin-table">
+      <thead><tr><th>Icon</th><th>Name</th><th>Courses</th><th>Featured</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="font-size: 1.5rem;">{{ cat.icon }}</td>
+          <td><strong>{{ cat.name }}</strong><br><span class="text-muted" style="font-size: 0.8rem;">{{ cat.description|truncatechars:60 }}</span></td>
+          <td>{{ cat.num_courses }}</td>
+          <td>{% if cat.is_featured %}⭐{% else %}—{% endif %}</td>
+          <td>
+            <form method="post" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="category_id" value="{{ cat.id }}">
+              <button type="submit" name="action" value="delete" class="btn btn-ghost btn-sm" style="color: var(--error);" onclick="return confirm('Delete?')">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</div>
+{% endblock %}

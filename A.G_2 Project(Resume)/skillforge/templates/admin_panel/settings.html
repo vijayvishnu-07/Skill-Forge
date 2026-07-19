@@ -1,0 +1,30 @@
+{% extends 'admin_panel/dashboard.html' %}
+{% block title %}Settings — Admin — Skill Forge{% endblock %}
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="margin-bottom: 2rem;"><img src="{% static 'images/logo-dark.svg' %}" height="28" alt="Skill Forge"></div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a><a href="{% url 'admin_users' %}">👥 Users</a><a href="{% url 'admin_courses' %}">📚 Courses</a><a href="{% url 'admin_categories' %}">📁 Categories</a><a href="{% url 'admin_feedback' %}">⭐ Feedback</a><a href="{% url 'admin_settings' %}" class="active">⚙️ Settings</a>
+      <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"><a href="{% url 'dashboard' %}">← Back to App</a></div>
+    </nav>
+  </aside>
+  <main class="admin-content">
+    <h1 style="font-size: 1.5rem; margin-bottom: 2rem;">System Settings</h1>
+    <div class="card-flat mb-3">
+      <h3 style="margin-bottom: 1rem; font-size: 1rem;">General Settings</h3>
+      <div class="form-group"><label class="form-label">Site Name</label><input type="text" class="form-input" value="Skill Forge" disabled></div>
+      <div class="form-group"><label class="form-label">Support Email</label><input type="email" class="form-input" value="support@skillforge.com" disabled></div>
+      <p class="text-muted" style="font-size: 0.85rem;">System settings are managed via environment variables. Update your <code>.env</code> file to change configuration.</p>
+    </div>
+    <div class="card-flat mb-3">
+      <h3 style="margin-bottom: 1rem; font-size: 1rem;">Email Configuration</h3>
+      <p class="text-muted" style="font-size: 0.85rem;">Email backend: <strong>Console (Development)</strong><br>Configure SMTP settings in <code>.env</code> for production email delivery.</p>
+    </div>
+    <div class="card-flat">
+      <h3 style="margin-bottom: 1rem; font-size: 1rem;">Storage</h3>
+      <p class="text-muted" style="font-size: 0.85rem;">Current storage: <strong>Local Media</strong><br>For AWS S3 support, configure <code>AWS_STORAGE_BUCKET_NAME</code> and related settings in <code>.env</code>.</p>
+    </div>
+  </main>
+</div>
+{% endblock %}

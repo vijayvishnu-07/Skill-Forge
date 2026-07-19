@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Course — Information — Skill Forge{% endblock %}
+
+{% block content %}
+<div class="creator-layout animate-fade-in">
+  <div class="step-indicator">
+    <div class="step completed"><div class="step-number">✓</div><span class="step-label">Thumbnail</span></div>
+    <div class="step-line completed"></div>
+    <div class="step active"><div class="step-number">2</div><span class="step-label">Information</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-number">3</div><span class="step-label">Content</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-number">4</div><span class="step-label">Review</span></div>
+  </div>
+
+  <h2 style="margin-bottom: 0.5rem;">Course Information</h2>
+  <p class="text-muted mb-3">Tell students about your course. Skill Forge AI will help generate suggestions.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label class="form-label">Course Title *</label>
+      <input type="text" class="form-input" name="title" value="{{ course.title }}" placeholder="e.g. Complete Python Bootcamp 2025" required maxlength="200">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Caption</label>
+      <input type="text" class="form-input" name="caption" value="{{ course.caption }}" placeholder="Short tagline for your course" maxlength="300">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-input" name="description" rows="6" placeholder="Detailed description of what students will learn...">{{ course.description }}</textarea>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">💡 Skill Forge AI will enhance your description if left brief.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" name="category">
+          <option value="">Select category</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if course.category_id == cat.id %}selected{% endif %}>{{ cat.icon }} {{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skill Level</label>
+        <select class="form-input" name="skill_level">
+          {% for value, label in skill_levels %}
+            <option value="{{ value }}" {% if course.skill_level == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <div class="form-group">
+        <label class="form-label">Language</label>
+        <input type="text" class="form-input" name="language" value="{{ course.language|default:'English' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma-separated)</label>
+        <input type="text" class="form-input" name="tags" value="{{ course.tags|join:', ' }}" placeholder="python, web, beginner">
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">💡 AI will auto-generate tags if left empty.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+      <a href="{% url 'course_create_step1' %}" class="btn btn-ghost">← Back</a>
+      <button type="submit" class="btn btn-primary">Continue →</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
